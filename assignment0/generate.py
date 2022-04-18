@@ -76,3 +76,5 @@ with open(args.outf, 'w') as outf:
 
             if i % args.log_interval == 0:
                 print('| Generated {}/{} words'.format(i, args.words))
+        print('| Generated {}/{} words'.format(i, args.words))
+    print(f"Check {args.outf}.")
