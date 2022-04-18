@@ -67,6 +67,7 @@ with open(args.outf, 'w') as outf:
             else:
                 output, hidden = model(input, hidden)
                 word_weights = output.squeeze().div(args.temperature).exp().cpu()
+                print(len(word_weights), word_weights.shape)
                 word_idx = torch.multinomial(word_weights, 1)[0]
                 input.fill_(word_idx)
 

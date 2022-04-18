@@ -237,6 +237,9 @@ try:
             lr /= 4.0
         train_losses_epoch.append(train_losses_this_batch)
         val_losses_epoch.append(val_loss)
+        # save every model
+        with open(f'model-{epoch}.pt', 'wb') as f:
+            torch.save(model, f)
 except KeyboardInterrupt:
     print('-' * 89)
     print('Exiting from training early')
