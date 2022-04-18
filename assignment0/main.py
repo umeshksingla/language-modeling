@@ -164,6 +164,7 @@ def train():
     ntokens = len(corpus.dictionary)
     if args.model != 'Transformer':
         hidden = model.init_hidden(args.batch_size)
+    train_losses_per_batch_epoch = []
     for batch, i in enumerate(range(0, train_data.size(0) - 1, args.bptt)):
         data, targets = get_batch(train_data, i)
         # Starting each batch, we detach the hidden state from how it was previously produced.
@@ -194,8 +195,10 @@ def train():
                 elapsed * 1000 / args.log_interval, cur_loss, math.exp(cur_loss)))
             total_loss = 0
             start_time = time.time()
+            train_losses_per_batch_epoch.append(cur_loss)
         if args.dry_run:
             break
+    return train_losses_per_batch_epoch
 
 
 def export_onnx(path, batch_size, seq_len):
@@ -213,9 +216,11 @@ best_val_loss = None
 
 # At any point you can hit Ctrl + C to break out of training early.
 try:
+    train_losses_epoch = []
+    val_losses_epoch = []
     for epoch in range(1, args.epochs+1):
         epoch_start_time = time.time()
-        train()
+        train_losses_this_batch = train()
         val_loss = evaluate(val_data)
         print('-' * 89)
         print('| end of epoch {:3d} | time: {:5.2f}s | valid loss {:5.2f} | '
@@ -230,9 +235,14 @@ try:
         else:
             # Anneal the learning rate if no improvement has been seen in the validation dataset.
             lr /= 4.0
+        train_losses_epoch.append(train_losses_this_batch)
+        val_losses_epoch.append(val_loss)
 except KeyboardInterrupt:
     print('-' * 89)
     print('Exiting from training early')
+
+print(train_losses_epoch)
+print(val_losses_epoch)
 
 # Load the best saved model.
 with open(args.save, 'rb') as f:
